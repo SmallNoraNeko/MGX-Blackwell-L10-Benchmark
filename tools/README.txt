@@ -1,4 +1,4 @@
-GB300 Benchmark Launcher — tools/ directory
+MGX Blackwell L10 Benchmark Launcher — tools/ directory
 ===========================================
 
 Place the benchmark binaries in this directory as shown below.
@@ -14,8 +14,8 @@ tools/
 ├── run_peaktops.sh                     <- from peakTOPS_v9.nv7z
 ├── cublasMatmulBench                   <- from cublasMatmulBench_v7.nv7z
 │
-├── gemm-memread/                       <- extract GEMM_v6.nv7z (GB300 path)
-│   │   Source: GEMM_v6/GB300/gemm-memread/gemm-memread/
+├── gemm-memread/                       <- extract GEMM_v6.nv7z (MGX Blackwell L10 path)
+│   │   Source: GEMM_v6/MGX Blackwell L10/gemm-memread/gemm-memread/
 │   ├── build/
 │   │   ├── generic_gemm_benchmark
 │   │   └── lib/
@@ -41,7 +41,7 @@ Source archives (from DA-12276-001_v28 PDF attachments)
   stream_test_v4.nv7z        -> rename to .7z, extract
   peakTOPS_v9.nv7z           -> rename to .7z, extract
   cublasMatmulBench_v7.nv7z  -> rename to .7z, extract
-  GEMM_v6.nv7z               -> rename to .7z, extract (use GB300 path)
+  GEMM_v6.nv7z               -> rename to .7z, extract (use MGX Blackwell L10 path)
   NCCL_v3.nv7z               -> source only; build with make first
 
 System tools (install via apt, not placed here)

@@ -3,7 +3,7 @@
 This repository is a personal portfolio project, not an open-source community tool.
 It documents a customized benchmark suite built for a specific MGX Architecture
 Blackwell L10 Standalone deployment and is published for reference and portfolio
-purposes only. Source package: gb300_benchmark_v1.0.1.zip
+purposes only. Source package: MGX-Blackwell-L10-Benchmark-v1.0.1
 
 ---
 

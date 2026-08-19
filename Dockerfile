@@ -4,7 +4,7 @@
 #
 # Base:   NVIDIA CUDA 12.8 + Ubuntu 24.04
 # Target: MGX Blackwell L10 Standalone (customized deployment)
-# Source: gb300_benchmark_v1.0.1.zip
+# Source: MGX-Blackwell-L10-Benchmark-v1.0.1
 #
 # NOTE: Proprietary binary tools are NOT included in this image.
 #       Mount tools/ as a volume at runtime.

@@ -1,211 +1,92 @@
-# GB300 Benchmark Launcher
+# MGX Architecture Blackwell L10 — Automated Benchmark Suite
 
-Single-entry automation script for GB300 NVL72 / ARM64 / Ubuntu 24.04 benchmark validation.
+> PERSONAL PORTFOLIO PROJECT
+>
+> Customized benchmark suite for a specific MGX Architecture Blackwell L10
+> Standalone deployment. Not a general-purpose tool. Cannot be reproduced
+> on other systems without full re-engineering of the hardware topology,
+> binary dependencies, and network configuration.
+> Configuration: Standalone — Mini-Rack Cartridges only. No Rack. No NVSwitch.
 
-## Quick Start
+---
 
-```bash
-# 1. Place benchmark binaries in tools/  (see tools/README.txt)
-# 2. Run as root
-sudo python3 gb300_launcher.py
-```
+## Demo
 
-## Usage
+Source package: MGX-Blackwell-L10-Benchmark-v1.0.1
 
-```
-sudo python3 gb300_launcher.py [OPTIONS]
+---
 
-Options:
-  --dry-run            Simulate execution — show commands, do not run
-  --no-prereq          Skip binary / tool pre-flight checks
-  --select 1,3,6       Run specific tests by ID (skips interactive menu)
-  --yes                Accept all default parameters (use with --select)
-  --log-dir PATH       Override report/ output path
-```
+## Benchmark Modules
 
-## Interactive Menu Controls
+| No. | Module               | Scope                                        |
+|-----|----------------------|----------------------------------------------|
+| 01  | GPU Stream           | Memory bandwidth validation                  |
+| 02  | Peak TOPS            | AI compute peak throughput                   |
+| 03  | GEMM Bench           | cuBLAS matrix multiply performance           |
+| 04  | FP4 GEMM             | FP4 precision GEMM validation                |
+| 05  | NCCL Loopback        | GPU interconnect collective operations       |
+| 06  | RDMA IPv4            | InfiniBand RDMA throughput (IPv4)            |
+| 07  | RDMA IPv6            | InfiniBand RDMA throughput (IPv6)            |
+| 08  | 1G NIC iPerf         | Management NIC throughput                    |
+| 09  | NIC PCIe Health      | PCIe link state and topology check           |
+| 10  | Power Monitor        | GPU TDP and average power draw               |
+| 11  | NeMo DL Validation   | End-to-end deep learning training validation |
+| 12  | NVBandwidth Loopback | NVLink bandwidth loopback test               |
 
-| Key       | Action                     |
-|-----------|----------------------------|
-| UP / DOWN | Move cursor                |
-| Space     | Toggle selection           |
-| a         | Select all available tests |
-| n         | Clear all selections       |
-| Enter     | Confirm and proceed        |
-| q         | Quit                       |
+---
 
-## Available Tests
+## Hardware & Firmware Specification
 
-| ID | Category               | Name                 | Configurable Parameters       |
-|----|------------------------|----------------------|-------------------------------|
-|  1 | GPU Compute & Memory   | GPU Stream           | —                             |
-|  2 | GPU Compute & Memory   | Peak TOPS            | —                             |
-|  3 | GPU Compute & Memory   | GEMM Bench           | —                             |
-|  4 | GPU Compute & Memory   | FP4 GEMM-MemRead     | —                             |
-|  5 | GPU Interconnect       | NCCL Loopback        | iters, msg size range         |
-|  6 | Network / RDMA         | RDMA Loopback IPv4   | duration, test type           |
-|  7 | Network / RDMA         | RDMA Loopback IPv6   | duration, test type           |
-|  8 | Network / RDMA         | 1G NIC iPerf         | client IP, mode, duration     |
-|  9 | Hardware Health        | NIC PCIe Health      | —                             |
-| 10 | Hardware Health        | Power Monitor        | duration mode, CSV log        |
-| 11 | DL Training Validation | NeMo DL Validation   | image, gpus, training command |
-| 12 | GPU Compute & Memory   | NVBandwidth Loopback | iters                         |
+| Component           | Specification                                   |
+|---------------------|-------------------------------------------------|
+| Architecture        | MGX Architecture                                |
+| GPU Module          | Blackwell L10                                   |
+| Form Factor         | Standalone — Mini-Rack (no Rack, no NVSwitch)   |
+| Cooling             | Liquid Cooling via Mini-Cartridge               |
+| Interconnect        | InfiniBand RDMA (IPv4 + IPv6) — CX8 / BF3      |
+| Host Platform       | Intel NUC                                       |
+| GPU Driver          | 580.126.20 (ARM64 SBSA / Ubuntu 24.04)         |
+| CUDA                | 13.0.2                                          |
+| DOCA Host           | 3.2.1-044413                                    |
+| HMC                 | GB200Nvl-25.08-B                                |
+| GPU VBIOS           | 97.10.4A.00.1F                                  |
+| SBIOS (NV BIOS)     | 2.05.05                                         |
+| FPGA (SMR)          | 1.60                                            |
+| CX8 Firmware        | 40.47.2526                                      |
+| BF3 Firmware        | 32.47.2526                                      |
 
-## Directory Structure
+Full firmware stack: [docs/setup/Standalone_L10_Setup_Spec.md](./docs/setup/Standalone_L10_Setup_Spec.md)
 
-```
-gb300_benchmark/
-├── gb300_launcher.py           <- Entry point (run this)
-│
-├── lib/                        <- All test scripts and launcher modules
-│   ├── _launcher_config.py
-│   ├── _launcher_runner.py
-│   ├── _rdma_common.py
-│   ├── disable_acs.sh          <- Auto-called by NVBandwidth test if ACS detected
-│   ├── run_nemo_validation_v3.py
-│   └── ...
-│
-├── tools/                      <- Benchmark binaries + offline resources
-│   ├── README.txt
-│   ├── gemm-memread/           <- Extract from GEMM_v6.zip (GB300 path)
-│   ├── nccl-build/             <- Build from nccl-tests-master.zip
-│   ├── nvbandwidth             <- Build from nvbandwidth-main.zip
-│   ├── GB_DL_scripts_v9/       <- Decode from GB_DL_scripts_v9.nv7z
-│   │   ├── GB_training_scripts.txt   <- NeMo test reads this
-│   │   ├── GB_inference_scripts.txt
-│   │   └── build-llm-containers.sh
-│   ├── Speech-main/            <- Extract from Speech-main.zip (optional)
-│   ├── pytorch_24.07-py3_arm64.tar   <- Offline container image (optional)
-│   └── ...
-│
-└── report/                     <- All logs (auto-created per test run)
-    └── run_<TIMESTAMP>/
-        ├── 00_summary.log
-        ├── 01_GPU_stream/      <- Only created for tests that were selected
-        ├── 02_peak_tops/
-        ├── ...
-        └── 12_nvbandwidth_loopback/
-```
+---
 
-## NeMo DL Validation Setup (Test 11)
+## Docker
 
-Test 11 runs a DL training workload inside a Podman container and measures
-step-time throughput.
+Base image: NVIDIA CUDA 12.8 + Ubuntu 24.04.
+Proprietary binary tools are not included — mount tools/ as a volume at runtime.
 
-### Step 1 — Decode GB_training_scripts.txt
+Prerequisites: Docker Engine + NVIDIA Container Toolkit + tools/ populated from MGX-Blackwell-L10-Benchmark-v1.0.1
 
-```bash
-cd gb300_benchmark/tools/
-mv GB_DL_scripts_v9.nv7z GB_DL_scripts_v9.7z
-7z x GB_DL_scripts_v9.7z          # NDA password required
+Build:
 
-# Result: tools/GB_DL_scripts_v9/ containing:
-#   GB_training_scripts.txt   <- launcher reads this
-#   GB_inference_scripts.txt
-#   build-llm-containers.sh
-```
+\`\`\`bash
+docker build -t night-kuronos/mgx-blackwell-l10-benchmark:1.0.1 .
+\`\`\`
 
-### Step 2 — Container Image (Online or Offline)
+Run:
 
-**Online (pull from NGC):**
+\`\`\`bash
+docker compose run benchmark
+\`\`\`
 
-```bash
-# pytorch:24.07-py3 is the only ARM64-compatible image for GB300
-# pytorch:25.04-py3 does NOT have an ARM64 image
-sudo podman pull --platform linux/arm64 nvcr.io/nvidia/pytorch:24.07-py3
-```
+---
 
-**Offline (recommended for air-gapped deployment):**
+## Disclaimer
 
-On a node with network access, export the image once:
+Published as a personal technical portfolio piece. Engineered for a single,
+specific hardware deployment. Not maintained as an open-source project.
 
-```bash
-podman save nvcr.io/nvidia/pytorch:24.07-py3 \
-    -o gb300_benchmark/tools/pytorch_24.07-py3_arm64.tar
-```
+---
 
-Place `pytorch_24.07-py3_arm64.tar` in `tools/`. The launcher automatically
-detects and loads it — no manual `podman load` required.
+## License
 
-Image resolution order (fully automatic):
-
-```
-1. Image already in local podman storage  →  use directly
-2. Matching .tar found in tools/          →  podman load automatically
-3. Network available                      →  podman pull
-4. All failed                             →  error with instructions
-```
-
-### Step 3 — Extract Speech-main (optional)
-
-Required only if the training command references the NeMo Speech framework.
-
-```bash
-cd gb300_benchmark/tools/
-unzip Speech-main.zip
-# Result: tools/Speech-main/
-```
-
-If `tools/GB_DL_scripts_v9/GB_training_scripts.txt` is not found, the
-launcher automatically falls back to a built-in smoke test.
-
-## NVBandwidth Loopback (Test 12)
-
-Measures GPU memory bandwidth across 32 CE and SM test cases.
-ACS is automatically disabled via `lib/disable_acs.sh` if detected — no
-manual `setpci` needed.
-
-**Build nvbandwidth:**
-
-```bash
-cd gb300_benchmark/tools/
-unzip nvbandwidth-main.zip
-cd nvbandwidth-main/
-cmake -DCMAKE_BUILD_TYPE=Release .
-make -j$(nproc)
-cp nvbandwidth ../
-cd .. && rm -rf nvbandwidth-main/
-```
-
-## Offline / Air-gapped Deployment
-
-```bash
-# On a networked node — save image and package everything
-podman save nvcr.io/nvidia/pytorch:24.07-py3 \
-    -o gb300_benchmark/tools/pytorch_24.07-py3_arm64.tar
-
-# Pack without compression (tar is already non-compressible, saves time)
-tar -cf gb300_benchmark_v1.0.0_offline.tar gb300_benchmark/
-
-# Transfer to target node (USB drive, scp, etc.)
-scp gb300_benchmark_v1.0.0_offline.tar root@<target>:/root/
-
-# On the target node — extract and run directly
-tar -xf gb300_benchmark_v1.0.0_offline.tar
-cd gb300_benchmark/
-sudo python3 gb300_launcher.py
-```
-
-The launcher auto-loads the container image from `tools/*.tar` on first run.
-
-## Requirements
-
-- Python 3.10+
-- Ubuntu 24.04 / ARM64
-- Root privileges (sudo)
-- CUDA 13 / Driver 580.82+
-
-**System tools** (install as needed):
-
-| Tool | Used by | Install |
-|------|---------|---------|
-| `ipmitool` | All GPU benchmark scripts (SDR) | `apt install ipmitool` |
-| `iperf` | 1G NIC iPerf (test 8) | `apt install iperf` |
-| `mst`, `mlxconfig` | NIC PCIe Health (test 9) | Install Mellanox MFT |
-| `lspci` | NIC PCIe Health (test 9) | `apt install pciutils` |
-| `ib_read_bw`, `ib_send_bw`, `ib_write_bw` | RDMA tests (6, 7) | Build from `tools/perftest-master.zip` |
-| `podman` | NeMo DL Validation (test 11) | `apt install podman` |
-| `nvidia-ctk` | NeMo DL Validation (test 11) | Install NVIDIA Container Toolkit |
-
-See `tools/README.txt` and `GB300_Benchmark_Setup_Guide.md` for full
-build and installation instructions.
+MIT License — see LICENSE for details.

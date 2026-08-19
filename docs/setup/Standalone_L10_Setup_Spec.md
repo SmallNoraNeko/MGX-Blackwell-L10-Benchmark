@@ -2,7 +2,7 @@
 
 > PERSONAL PORTFOLIO PROJECT
 > Single-unit standalone configuration. No Rack, no NVSwitch.
-> Mini-Rack Cartridges only. Source: gb300_benchmark_v1.0.1.zip
+> Mini-Rack Cartridges only. Source: MGX-Blackwell-L10-Benchmark-v1.0.1
 
 ---
 
