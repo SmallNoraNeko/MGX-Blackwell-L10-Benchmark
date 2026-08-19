@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MGX Blackwell L10 — Benchmark Suite · Night-Kuronos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:         #0a0f1e;
+  --bg-card:    #111827;
+  --bg-surface: #1a2235;
+  --border:     #1e2d45;
+  --border-lit: #2a4060;
+  --text:       #e8eaf0;
+  --text-mid:   #8fa3c0;
+  --text-muted: #4a6080;
+  --green:      #76b900;
+  --green-dim:  #3d6100;
+  --blue:       #4a90d9;
+  --white:      #ffffff;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Inter', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text);
+  background: var(--bg);
+  overflow-x: hidden;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  height: 56px;
+  background: rgba(10,15,30,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-logo {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--green);
+  letter-spacing: 0.04em;
+  text-decoration: none;
+}
+.nav-links {
+  display: flex;
+  gap: 32px;
+  list-style: none;
+}
+.nav-links a {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-mid);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--text); }
+.nav-cta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--green);
+  background: rgba(118,185,0,0.08);
+  border: 1px solid var(--green-dim);
+  padding: 6px 16px;
+  border-radius: 3px;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.nav-cta:hover { background: rgba(118,185,0,0.15); }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  padding: 0 40px;
+  padding-top: 56px;
+}
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 80px 0 40px;
+  gap: 48px;
+}
+.hero-top {}
+.hero-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.hero-eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 24px;
+  height: 1px;
+  background: var(--green);
+}
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 5vw, 64px);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--white);
+  margin-bottom: 24px;
+}
+.hero-title span { color: var(--green); }
+.hero-subtitle {
+  font-size: 16px;
+  color: var(--text-mid);
+  max-width: 540px;
+  line-height: 1.7;
+  margin-bottom: 32px;
+}
+.hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 2px;
+  border: 1px solid;
+}
+.badge-green { color: var(--green); border-color: var(--green-dim); background: rgba(118,185,0,0.06); }
+.badge-blue  { color: var(--blue);  border-color: #1a3a5c;          background: rgba(74,144,217,0.06); }
+.badge-gray  { color: var(--text-muted); border-color: var(--border); background: transparent; }
+
+/* ── TERMINAL ── */
+.terminal-wrap {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.terminal {
+  background: #0d1117;
+  border: 1px solid var(--border-lit);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(118,185,0,0.05);
+}
+.terminal-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #161b22;
+  border-bottom: 1px solid var(--border);
+}
+.t-dot { width: 12px; height: 12px; border-radius: 50%; }
+.t-red    { background: #ff5f57; }
+.t-yellow { background: #febc2e; }
+.t-green  { background: #28c840; }
+.terminal-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: 8px;
+  letter-spacing: 0.04em;
+}
+.terminal-body {
+  position: relative;
+  line-height: 0;
+}
+.terminal-body img {
+  width: 100%;
+  display: block;
+}
+.terminal-overlay {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+  pointer-events: none;
+}
+.terminal-footer {
+  padding: 10px 16px;
+  background: #161b22;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.terminal-footer-left {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.terminal-footer-left span { color: var(--green); }
+.terminal-download {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--green);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border: 1px solid var(--green-dim);
+  border-radius: 3px;
+  background: rgba(118,185,0,0.06);
+  transition: background 0.2s;
+}
+.terminal-download:hover { background: rgba(118,185,0,0.14); }
+.terminal-download svg { width: 12px; height: 12px; }
+
+/* ── SECTIONS ── */
+.section {
+  padding: 96px 40px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.section-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: 12px;
+}
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(24px, 3vw, 36px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--white);
+  margin-bottom: 16px;
+}
+.section-desc {
+  font-size: 15px;
+  color: var(--text-mid);
+  max-width: 560px;
+  margin-bottom: 48px;
+  line-height: 1.7;
+}
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* ── MODULES GRID ── */
+.modules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.module-card {
+  background: var(--bg-card);
+  padding: 20px 24px;
+  transition: background 0.15s;
+}
+.module-card:hover { background: var(--bg-surface); }
+.module-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+.module-name {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--white);
+  margin-bottom: 4px;
+}
+.module-scope {
+  font-size: 12px;
+  color: var(--text-mid);
+  line-height: 1.5;
+}
+.module-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 2px;
+  margin-top: 8px;
+}
+.tag-gpu    { background: rgba(118,185,0,0.1);  color: var(--green); }
+.tag-net    { background: rgba(74,144,217,0.1); color: var(--blue); }
+.tag-health { background: rgba(100,100,120,0.15); color: var(--text-mid); }
+.tag-dl     { background: rgba(180,100,255,0.1); color: #c084fc; }
+
+/* ── SPEC TABLE ── */
+.spec-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+.spec-block {}
+.spec-block-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--green);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-lit);
+  margin-bottom: 0;
+}
+.spec-row {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 16px;
+}
+.spec-row:last-child { border-bottom: none; }
+.spec-key {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+.spec-val {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+.spec-val.green { color: var(--green); }
+
+/* ── DOCKER ── */
+.docker-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.docker-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 24px;
+}
+.docker-card-title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-mid);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+pre.code-block {
+  background: #060a12;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 16px 18px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.7;
+  color: #d4d4d4;
+  overflow-x: auto;
+  white-space: pre;
+}
+pre.code-block .c { color: #4a6080; }
+pre.code-block .g { color: var(--green); }
+pre.code-block .b { color: var(--blue); }
+
+/* ── DISCLAIMER ── */
+.disclaimer {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--green);
+  border-radius: 0 6px 6px 0;
+  padding: 24px 28px;
+  margin-top: 48px;
+}
+.disclaimer p {
+  font-size: 13px;
+  color: var(--text-mid);
+  line-height: 1.7;
+}
+.disclaimer p + p { margin-top: 8px; }
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.footer-left {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.footer-left span { color: var(--green); }
+.footer-right {
+  display: flex;
+  gap: 24px;
+}
+.footer-right a {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.footer-right a:hover { color: var(--text); }
+
+@media (max-width: 768px) {
+  nav { padding: 0 20px; }
+  .nav-links { display: none; }
+  .hero { padding: 0 20px; padding-top: 56px; }
+  .section { padding: 64px 20px; }
+  .spec-grid { grid-template-columns: 1fr; }
+  .docker-grid { grid-template-columns: 1fr; }
+  .spec-row { grid-template-columns: 130px 1fr; }
+  footer { padding: 32px 20px; flex-direction: column; gap: 16px; text-align: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">Night-Kuronos / MGX-Blackwell-L10</a>
+  <ul class="nav-links">
+    <li><a href="#demo">Demo</a></li>
+    <li><a href="#modules">Modules</a></li>
+    <li><a href="#spec">Spec</a></li>
+    <li><a href="#docker">Docker</a></li>
+  </ul>
+  <a class="nav-cta" href="https://github.com/SmallNoraNeko/MGX-Blackwell-L10-Benchmark" target="_blank">View on GitHub</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-top">
+      <div class="hero-eyebrow">Personal Portfolio — Night-Kuronos</div>
+      <h1 class="hero-title">MGX Architecture<br><span>Blackwell L10</span><br>Benchmark Suite</h1>
+      <p class="hero-subtitle">
+        12-in-1 automated validation suite for an MGX Architecture Blackwell L10
+        Standalone system. Covers GPU compute, RDMA networking, NVLink, and
+        end-to-end deep learning — all from a single TUI launcher.
+      </p>
+      <div class="hero-badges">
+        <span class="badge badge-green">Standalone Config</span>
+        <span class="badge badge-green">12 Benchmark Modules</span>
+        <span class="badge badge-blue">CUDA 13.0.2</span>
+        <span class="badge badge-blue">ARM64 · Ubuntu 24.04</span>
+        <span class="badge badge-gray">No Rack · No NVSwitch</span>
+        <span class="badge badge-gray">Portfolio Only</span>
+      </div>
+    </div>
+
+    <!-- TERMINAL DEMO -->
+    <div class="terminal-wrap" id="demo">
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="t-dot t-red"></div>
+          <div class="t-dot t-yellow"></div>
+          <div class="t-dot t-green"></div>
+          <span class="terminal-title">night@kuronos — mgx_l10_benchmark · python3 gb300_launcher.py</span>
+        </div>
+        <div class="terminal-body">
+          <img src="docs/demo_preview.gif"
+               alt="MGX Blackwell L10 Benchmark — TUI launcher and benchmark execution demo"
+               loading="lazy">
+          <div class="terminal-overlay"></div>
+        </div>
+        <div class="terminal-footer">
+          <div class="terminal-footer-left">
+            <span>gb300_launcher.py</span> · MGX-Blackwell-L10-Benchmark v1.0.1 · ARM64
+          </div>
+          <a class="terminal-download"
+             href="https://github.com/SmallNoraNeko/MGX-Blackwell-L10-Benchmark/releases/download/v1.0.1/GB300_Automated_Benchmark_in_Action_Demo.mp4"
+             target="_blank">
+            <svg viewBox="0 0 16 16" fill="currentColor">
+              <path d="M7.47 10.78a.75.75 0 001.06 0l3.75-3.75a.75.75 0 00-1.06-1.06L8.75 8.44V1.75a.75.75 0 00-1.5 0v6.69L4.78 5.97a.75.75 0 00-1.06 1.06l3.75 3.75zM3.75 13a.75.75 0 000 1.5h8.5a.75.75 0 000-1.5h-8.5z"/>
+            </svg>
+            Download Full Video
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- MODULES -->
+<div class="section" id="modules">
+  <div class="section-eyebrow">Benchmark Coverage</div>
+  <h2 class="section-title">12 Validation Modules</h2>
+  <p class="section-desc">
+    Each module targets a distinct layer of the hardware stack, from raw GPU memory
+    bandwidth to full NeMo deep learning training validation.
+  </p>
+  <div class="modules-grid">
+    <div class="module-card">
+      <div class="module-num">01</div>
+      <div class="module-name">GPU Stream</div>
+      <div class="module-scope">Memory bandwidth validation via vectorized float benchmark</div>
+      <span class="module-tag tag-gpu">GPU Compute</span>
+    </div>
+    <div class="module-card">
+      <div class="module-num">02</div>
+      <div class="module-name">Peak TOPS</div>
+      <div class="module-scope">AI compute peak throughput measurement</div>
+      <span class="module-tag tag-gpu">GPU Compute</span>
+    </div>
+    <div class="module-card">
+      <div class="module-num">03</div>
+      <div class="module-name">GEMM Bench</div>
+      <div class="module-scope">cuBLAS matrix multiply performance</div>
+      <span class="module-tag tag-gpu">GPU Compute</span>
+    </div>
+    <div class="module-card">
+      <div class="module-num">04</div>
+      <div class="module-name">FP4 GEMM</div>
+      <div class="module-scope">FP4 precision GEMM validation via CUTLASS</div>
+      <span class="module-tag tag-gpu">GPU Compute</span>
+    </div>
+    <div class="module-card">
+      <div class="module-num">05</div>
+      <div class="module-name">NCCL Loopback</div>
+      <div class="module-scope">GPU interconnect collective operations</div>
+      <span class="module-tag tag-gpu">Interconnect</span>
+    </div>
+    <div class="module-card">
+      <div class="module-num">06</div>
+      <div class="module-name">RDMA IPv4</div>
+      <div class="module-scope">InfiniBand RDMA throughput over IPv4</div>
+      <span class="module-tag tag-net">Network</span>
+    </div>
+    <div class="module-card">
+      <div class="module-num">07</div>
+      <div class="module-name">RDMA IPv6</div>
+      <div class="module-scope">InfiniBand RDMA throughput over IPv6</div>
+      <span class="module-tag tag-net">Network</span>
+    </div>
+    <div class="module-card">
+      <div class="module-num">08</div>
+      <div class="module-name">1G NIC iPerf</div>
+      <div class="module-scope">Management NIC throughput validation</div>
+      <span class="module-tag tag-net">Network</span>
+    </div>
+    <div class="module-card">
+      <div class="module-num">09</div>
+      <div class="module-name">NIC PCIe Health</div>
+      <div class="module-scope">PCIe link state and topology check — CX8 / BF3</div>
+      <span class="module-tag tag-health">Health</span>
+    </div>
+    <div class="module-card">
+      <div class="module-num">10</div>
+      <div class="module-name">Power Monitor</div>
+      <div class="module-scope">GPU TDP and average power draw logging</div>
+      <span class="module-tag tag-health">Health</span>
+    </div>
+    <div class="module-card">
+      <div class="module-num">11</div>
+      <div class="module-name">NeMo DL Validation</div>
+      <div class="module-scope">End-to-end deep learning training via Podman container</div>
+      <span class="module-tag tag-dl">DL Training</span>
+    </div>
+    <div class="module-card">
+      <div class="module-num">12</div>
+      <div class="module-name">NVBandwidth Loopback</div>
+      <div class="module-scope">NVLink bandwidth loopback — 32 CE and SM test cases</div>
+      <span class="module-tag tag-gpu">Interconnect</span>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- SPEC -->
+<div class="section" id="spec">
+  <div class="section-eyebrow">Validated Configuration</div>
+  <h2 class="section-title">Hardware & Firmware Stack</h2>
+  <p class="section-desc">
+    All 12 modules were written and validated against this exact firmware stack.
+    Behavior on other versions is undefined and out of scope.
+  </p>
+  <div class="spec-grid">
+    <div class="spec-block">
+      <div class="spec-block-title">Platform</div>
+      <div class="spec-row"><span class="spec-key">Architecture</span><span class="spec-val green">MGX Architecture</span></div>
+      <div class="spec-row"><span class="spec-key">GPU Module</span><span class="spec-val green">Blackwell L10</span></div>
+      <div class="spec-row"><span class="spec-key">Form Factor</span><span class="spec-val">Standalone — Mini-Rack</span></div>
+      <div class="spec-row"><span class="spec-key">NVSwitch</span><span class="spec-val">Not connected</span></div>
+      <div class="spec-row"><span class="spec-key">Cooling</span><span class="spec-val">Liquid — Mini-Cartridge</span></div>
+      <div class="spec-row"><span class="spec-key">Host</span><span class="spec-val">Intel NUC</span></div>
+      <div class="spec-row"><span class="spec-key">GPU Driver</span><span class="spec-val">580.126.20</span></div>
+      <div class="spec-row"><span class="spec-key">CUDA</span><span class="spec-val">13.0.2</span></div>
+    </div>
+    <div class="spec-block">
+      <div class="spec-block-title">Firmware — Compute Tray V1.0.6</div>
+      <div class="spec-row"><span class="spec-key">HMC</span><span class="spec-val">GB200Nvl-25.08-B</span></div>
+      <div class="spec-row"><span class="spec-key">SBIOS</span><span class="spec-val">2.05.05</span></div>
+      <div class="spec-row"><span class="spec-key">GPU VBIOS</span><span class="spec-val">97.10.4A.00.1F</span></div>
+      <div class="spec-row"><span class="spec-key">FPGA (SMR)</span><span class="spec-val">1.60</span></div>
+      <div class="spec-row"><span class="spec-key">ERoT</span><span class="spec-val">01.04.0031_0000_n04</span></div>
+      <div class="spec-row"><span class="spec-key">CX8</span><span class="spec-val">40.47.2526</span></div>
+      <div class="spec-row"><span class="spec-key">BF3</span><span class="spec-val">32.47.2526</span></div>
+      <div class="spec-row"><span class="spec-key">DOCA Host</span><span class="spec-val">3.2.1-044413</span></div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- DOCKER -->
+<div class="section" id="docker">
+  <div class="section-eyebrow">Containerized Execution</div>
+  <h2 class="section-title">Docker</h2>
+  <p class="section-desc">
+    Base image: NVIDIA CUDA 12.8 + Ubuntu 24.04. Proprietary binary tools are
+    not included — mount <code style="font-family:var(--font-mono);font-size:13px;color:var(--green)">tools/</code> as a volume at runtime.
+  </p>
+  <div class="docker-grid">
+    <div class="docker-card">
+      <div class="docker-card-title">Build</div>
+      <pre class="code-block"><span class="g">$</span> docker build \
+    -t night-kuronos/mgx-blackwell-l10-benchmark:1.0.1 \
+    .</pre>
+    </div>
+    <div class="docker-card">
+      <div class="docker-card-title">Run</div>
+      <pre class="code-block"><span class="g">$</span> docker compose run benchmark
+
+<span class="c"># or manually:</span>
+<span class="g">$</span> docker run --rm -it \
+    --runtime=nvidia --gpus all \
+    --network host --privileged \
+    -v ./tools:/workspace/tools:ro \
+    -v ./report:/workspace/report:rw \
+    night-kuronos/mgx-blackwell-l10-benchmark:1.0.1</pre>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    <p><strong style="color:var(--text)">Personal Portfolio Project.</strong> This benchmark suite was engineered for a single, specific MGX Architecture Blackwell L10 Standalone deployment and is published here as a personal technical portfolio piece.</p>
+    <p>Reproduction requires: identical MGX hardware topology, proprietary binary tools (not distributed in this repository), and site-specific RDMA and PCIe configurations. Not maintained as an open-source project.</p>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<hr class="divider">
+<footer>
+  <div class="footer-left">
+    <span>Night-Kuronos</span> / MGX-Blackwell-L10-Benchmark · MIT License · 2026
+  </div>
+  <div class="footer-right">
+    <a href="https://github.com/SmallNoraNeko/MGX-Blackwell-L10-Benchmark" target="_blank">GitHub</a>
+    <a href="https://github.com/SmallNoraNeko/MGX-Blackwell-L10-Benchmark/releases/tag/v1.0.1" target="_blank">Release v1.0.1</a>
+    <a href="https://github.com/SmallNoraNeko/MGX-Blackwell-L10-Benchmark/blob/main/docs/setup/Standalone_L10_Setup_Spec.md" target="_blank">Firmware Spec</a>
+  </div>
+</footer>
+
+</body>
+</html>
