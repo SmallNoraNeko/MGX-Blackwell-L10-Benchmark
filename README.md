@@ -9,7 +9,9 @@
 
 ## Demo
 
-https://github.com/SmallNoraNeko/MGX-Blackwell-L10-Benchmark/releases/download/v1.0.1/GB300_Automated_Benchmark_in_Action_Demo.mp4
+[![MGX Blackwell L10 Benchmark — Live Demo](./docs/demo_preview.gif)](https://github.com/SmallNoraNeko/MGX-Blackwell-L10-Benchmark/releases/download/v1.0.1/GB300_Automated_Benchmark_in_Action_Demo.mp4)
+
+[Download Full Video (mp4)](https://github.com/SmallNoraNeko/MGX-Blackwell-L10-Benchmark/releases/download/v1.0.1/GB300_Automated_Benchmark_in_Action_Demo.mp4) · [Portfolio Site](https://smallnoraneko.github.io/MGX-Blackwell-L10-Benchmark/)
 
 ---
 
