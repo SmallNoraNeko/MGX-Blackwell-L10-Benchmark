@@ -1,5 +1,12 @@
 # MGX Architecture Blackwell L10 — Automated Benchmark Suite
 
+![Platform](https://img.shields.io/badge/Platform-ARM64%20%2F%20aarch64-blue?style=flat-square)
+![OS](https://img.shields.io/badge/OS-Ubuntu%2024.04-orange?style=flat-square)
+![GPU](https://img.shields.io/badge/GPU-MGX%20Blackwell%20L10-76b900?style=flat-square)
+![CUDA](https://img.shields.io/badge/CUDA-13.0.2-76b900?style=flat-square)
+![Docker](https://img.shields.io/badge/Docker-CUDA%2012.8%20Runtime-2496ed?style=flat-square)
+![License](https://img.shields.io/badge/License-MIT-lightgrey?style=flat-square)
+
 > **PERSONAL PORTFOLIO PROJECT**
 > Customized benchmark suite for a specific MGX Architecture Blackwell L10 Standalone
 > deployment. Not a general-purpose tool. Configuration: Standalone — Mini-Rack
@@ -7,43 +14,47 @@
 
 ---
 
-## Demo
+## 🎬 Demo
 
-[![MGX Blackwell L10 Benchmark — Live Demo](./docs/demo_preview.gif)](https://github.com/SmallNoraNeko/MGX-Blackwell-L10-Benchmark/releases/download/v1.0.1/GB300_Automated_Benchmark_in_Action_Demo.mp4)
+<div align="center">
 
-[Download Full Video (mp4)](https://github.com/SmallNoraNeko/MGX-Blackwell-L10-Benchmark/releases/download/v1.0.1/GB300_Automated_Benchmark_in_Action_Demo.mp4) · [Portfolio Site](https://smallnoraneko.github.io/MGX-Blackwell-L10-Benchmark/)
+[![MGX Blackwell L10 Benchmark Demo](./docs/demo_preview.gif)](https://github.com/SmallNoraNeko/MGX-Blackwell-L10-Benchmark/releases/download/v1.0.1/GB300_Automated_Benchmark_in_Action_Demo.mp4)
+
+▶ [Download Full Video (.mp4)](https://github.com/SmallNoraNeko/MGX-Blackwell-L10-Benchmark/releases/download/v1.0.1/GB300_Automated_Benchmark_in_Action_Demo.mp4) &nbsp;|&nbsp; 🌐 [Portfolio Site](https://smallnoraneko.github.io/MGX-Blackwell-L10-Benchmark/)
+
+</div>
 
 ---
 
-## Overview
+## 📋 Overview
 
-A 12-in-1 automated benchmark suite with an interactive TUI launcher, designed to
+A **12-in-1 automated benchmark suite** with an interactive TUI launcher, designed to
 validate the complete hardware stack of an MGX Architecture Blackwell L10 Standalone
 system — covering GPU compute, memory bandwidth, RDMA networking, NVLink, and
 end-to-end deep learning validation.
 
 ---
 
-## Benchmark Modules
+## 🧪 Benchmark Modules
 
-| No. | Module | Scope |
-|-----|--------|-------|
-| 01 | GPU Stream | Memory bandwidth validation |
-| 02 | Peak TOPS | AI compute peak throughput |
-| 03 | GEMM Bench | cuBLAS matrix multiply performance |
-| 04 | FP4 GEMM | FP4 precision GEMM validation |
-| 05 | NCCL Loopback | GPU interconnect collective operations |
-| 06 | RDMA IPv4 | InfiniBand RDMA throughput (IPv4) |
-| 07 | RDMA IPv6 | InfiniBand RDMA throughput (IPv6) |
-| 08 | 1G NIC iPerf | Management NIC throughput |
-| 09 | NIC PCIe Health | PCIe link state and topology check |
-| 10 | Power Monitor | GPU TDP and average power draw |
-| 11 | NeMo DL Validation | End-to-end deep learning training validation |
-| 12 | NVBandwidth Loopback | NVLink bandwidth loopback test |
+| No. | Module | Scope | Category |
+|-----|--------|-------|----------|
+| 01 | GPU Stream | Memory bandwidth validation | GPU Compute |
+| 02 | Peak TOPS | AI compute peak throughput | GPU Compute |
+| 03 | GEMM Bench | cuBLAS matrix multiply performance | GPU Compute |
+| 04 | FP4 GEMM | FP4 precision GEMM validation | GPU Compute |
+| 05 | NCCL Loopback | GPU interconnect collective operations | Interconnect |
+| 06 | RDMA IPv4 | InfiniBand RDMA throughput (IPv4) | Network |
+| 07 | RDMA IPv6 | InfiniBand RDMA throughput (IPv6) | Network |
+| 08 | 1G NIC iPerf | Management NIC throughput | Network |
+| 09 | NIC PCIe Health | PCIe link state and topology check | Health |
+| 10 | Power Monitor | GPU TDP and average power draw | Health |
+| 11 | NeMo DL Validation | End-to-end deep learning training validation | DL Training |
+| 12 | NVBandwidth Loopback | NVLink bandwidth loopback test | Interconnect |
 
 ---
 
-## Hardware & Firmware Specification
+## 🖥️ Hardware & Firmware Specification
 
 | Component | Specification |
 |-----------|--------------|
@@ -63,26 +74,29 @@ end-to-end deep learning validation.
 | CX8 Firmware | 40.47.2526 |
 | BF3 Firmware | 32.47.2526 |
 
-Full firmware stack: [docs/setup/Standalone_L10_Setup_Spec.md](./docs/setup/Standalone_L10_Setup_Spec.md)
+📄 Full firmware stack: [docs/setup/Standalone\_L10\_Setup\_Spec.md](./docs/setup/Standalone_L10_Setup_Spec.md)
 
 ---
 
-## Docker
+## 🐳 Docker
 
 Base image: `nvcr.io/nvidia/cuda:12.8.0-runtime-ubuntu24.04`
 
 Proprietary binary tools are **not included** in the image.
-Mount `tools/` as a volume at runtime.
+Mount `tools/` as a volume at runtime. See `tools/README.txt` for the full binary inventory.
 
-Prerequisites: Docker Engine · NVIDIA Container Toolkit · `tools/` populated
+**Prerequisites**
 
-Build:
+- Docker Engine + NVIDIA Container Toolkit
+- `tools/` populated from `MGX-Blackwell-L10-Benchmark-v1.0.1`
+
+**Build**
 
 \`\`\`bash
 docker build -t night-kuronos/mgx-blackwell-l10-benchmark:1.0.1 .
 \`\`\`
 
-Run:
+**Run**
 
 \`\`\`bash
 docker compose run benchmark
@@ -90,29 +104,44 @@ docker compose run benchmark
 
 ---
 
-## Repository Structure
+## 📁 Repository Structure
 
 \`\`\`
 MGX-Blackwell-L10-Benchmark/
-├── Dockerfile
-├── docker-compose.yml
-├── requirements.txt
-├── gb300_launcher.py                TUI main entry point
-├── lib/                             12 benchmark modules
-├── docs/setup/                      Standalone_L10_Setup_Spec.md
-├── tools/                           NOT tracked — place binaries here manually
-└── report/                          NOT tracked — benchmark output logs
+├── Dockerfile                           Container runtime environment
+├── docker-compose.yml                   Service definition
+├── requirements.txt                     Python dependencies
+├── gb300_launcher.py                    TUI main entry point (12-in-1)
+├── lib/                                 12 benchmark modules
+│   ├── run_GPU_stream.py                01 GPU Stream
+│   ├── run_peak_tops.py                 02 Peak TOPS
+│   ├── run_GEMM_bench.py                03 GEMM Bench
+│   ├── run_FP4_GEMM.py                  04 FP4 GEMM
+│   ├── nccl_L10_loopback_v2.py          05 NCCL Loopback
+│   ├── rdma_test_ipv4_v2.py             06 RDMA IPv4
+│   ├── rdma_test_ipv6_v3.py             07 RDMA IPv6
+│   ├── 1G_nic_iperf.py                  08 1G NIC iPerf
+│   ├── nic_info_v3.py                   09 NIC PCIe Health
+│   ├── monitor_power1_average_v1.py     10 Power Monitor
+│   ├── run_nemo_validation_v3.py        11 NeMo DL Validation
+│   └── nvbandwidth_loopback.py          12 NVBandwidth Loopback
+├── docs/setup/                          Standalone_L10_Setup_Spec.md
+├── tools/                               NOT tracked — place binaries here
+└── report/                              NOT tracked — benchmark output logs
 \`\`\`
 
 ---
 
-## Disclaimer
+## ⚠️ Disclaimer
 
 Published as a personal technical portfolio piece. Engineered for a single specific
-hardware deployment. Not maintained as an open-source project.
+hardware deployment. **Not maintained as an open-source project.**
+
+Reproduction requires: identical MGX hardware topology, proprietary binary tools
+(not distributed here), and site-specific RDMA and PCIe configurations.
 
 ---
 
-## License
+## 📄 License
 
 MIT License — see [LICENSE](./LICENSE) for details.
