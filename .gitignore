@@ -1,0 +1,23 @@
+# Large binary tools — place manually, never commit
+tools/*
+!tools/README.txt
+
+# Benchmark output logs — excluded from version control
+report/*
+!report/.gitkeep
+
+# Python runtime artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.env
+
+# Docker
+*.tar
+
+# OS metadata
+.DS_Store
+Thumbs.db
+*.log
+*.out

@@ -1,0 +1,22 @@
+# MGX Architecture Blackwell L10 — Benchmark Suite
+# Personal Portfolio Project — Night-Kuronos / SmallNoraNeko
+#
+# Requires: NVIDIA Container Toolkit on host
+# Usage:    docker compose run benchmark
+
+services:
+  benchmark:
+    build: .
+    image: night-kuronos/mgx-blackwell-l10-benchmark:1.0.1
+    container_name: mgx_l10_benchmark
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    volumes:
+      - ./tools:/workspace/tools:ro
+      - ./report:/workspace/report:rw
+    network_mode: host
+    stdin_open: true
+    tty: true
+    privileged: true

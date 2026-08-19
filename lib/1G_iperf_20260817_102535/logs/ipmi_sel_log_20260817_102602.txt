@@ -1,0 +1,1 @@
+   1 | 08/17/2026 | 10:25:36 AM CST | Event Logging Disabled #0xb7 | Log area reset/cleared | Asserted

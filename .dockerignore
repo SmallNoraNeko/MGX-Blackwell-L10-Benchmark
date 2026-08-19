@@ -1,0 +1,12 @@
+tools/
+report/
+*.zip
+*.7z
+*.nv7z
+*.mp4
+*.tar
+.git
+__pycache__
+*.pyc
+*.log
+.env
