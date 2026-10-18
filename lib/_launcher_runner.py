@@ -20,6 +20,7 @@ import signal
 import subprocess
 import time
 from datetime import datetime
+from pathlib import Path
 
 from _launcher_config import ROOT_DIR, TOOLS_DIR, LIB_DIR, get_test
 
@@ -68,6 +69,8 @@ LOG_DIR_NAMES = {
     10: "10_power_monitor",
     11: "11_nemo_validation",
     12: "12_nvbandwidth_loopback",
+    13: "13_mufu_ex2",
+    14: "14_hpl_linpack",
 }
 
 
@@ -121,6 +124,10 @@ def build_command(test: dict, params: dict, run_dir: str) -> list[str]:
         tt = params.get("test_type", "all")
         if tt != "all":
             cmd += ["--test", tt]
+        if params.get("quick", False):
+            cmd += ["--quick"]
+        if params.get("platform"):
+            cmd += ["--platform", str(params["platform"])]
 
     elif tid == 7:  # RDMA IPv6
         out_dir = test_log_dir(run_dir, tid)
@@ -129,6 +136,10 @@ def build_command(test: dict, params: dict, run_dir: str) -> list[str]:
         tt = params.get("test_type", "all")
         if tt != "all":
             cmd += ["--test", tt]
+        if params.get("quick", False):
+            cmd += ["--quick"]
+        if params.get("platform"):
+            cmd += ["--platform", str(params["platform"])]
 
     elif tid == 8:  # 1G NIC iPerf
         mode = params.get("mode", "bidirectional")
@@ -161,6 +172,19 @@ def build_command(test: dict, params: dict, run_dir: str) -> list[str]:
             "--iters",     str(params.get("iters", 3)),
             "--log-dir",   test_log_dir(run_dir, tid),
         ]
+
+    elif tid == 13:  # MUFU.EX2 Benchmark
+        cmd += [
+            "--iters",   str(params.get("iters", 3)),
+            "--log-dir", test_log_dir(run_dir, tid),
+        ]
+
+    elif tid == 14:  # HPL CPU Linpack
+        # Auto-search .sif in tools/; log-dir passed by launcher
+        sif_candidates = list(Path(TOOLS_DIR).glob("hpc-benchmarks*.sif"))
+        if sif_candidates:
+            cmd += ["--sif-file", str(sif_candidates[0])]
+        cmd += ["--log-dir", test_log_dir(run_dir, tid)]
 
     return cmd
 

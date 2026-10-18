@@ -180,16 +180,20 @@ TESTS = [
         "key":         "RDMA_IPv4",
         "name":        "RDMA Loopback IPv4",
         "category":    "Network / RDMA",
-        "script":      os.path.join(LIB_DIR, "rdma_test_ipv4_v2.py"),
+        "script":      os.path.join(LIB_DIR, "rdma_test_ipv4_v4.py"),
         "prereqs": [
             ("cmd", "ib_read_bw",  "ib_read_bw"),
             ("cmd", "ib_send_bw",  "ib_send_bw"),
             ("cmd", "ib_write_bw", "ib_write_bw"),
+            ("cmd", "numactl",     "numactl"),
         ],
-        "configurable": ["duration", "test_type"],
+        # v1.0.5: 2026-10-16 system10 驗證版（MTU 9000、分 4 批、門檻 = link rate 90%）
+        "configurable": ["duration", "test_type", "quick", "platform"],
         "defaults": {
             "duration":  30,
             "test_type": "all",    # "all" | "read" | "send" | "write"
+            "quick":     False,    # True = 只跑 64KB / 256KB（約 10 分鐘/測試類型）
+            "platform":  "",       # rdma_platforms.json 的平台名稱；"" = 檔案中的 default（GB300_L10）
         },
         "bg_capable":   False,
     },
@@ -202,16 +206,20 @@ TESTS = [
         "key":         "RDMA_IPv6",
         "name":        "RDMA Loopback IPv6",
         "category":    "Network / RDMA",
-        "script":      os.path.join(LIB_DIR, "rdma_test_ipv6_v3.py"),
+        "script":      os.path.join(LIB_DIR, "rdma_test_ipv6_v5.py"),
         "prereqs": [
             ("cmd", "ib_read_bw",  "ib_read_bw"),
             ("cmd", "ib_send_bw",  "ib_send_bw"),
             ("cmd", "ib_write_bw", "ib_write_bw"),
+            ("cmd", "numactl",     "numactl"),
         ],
-        "configurable": ["duration", "test_type"],
+        # v1.0.5: 2026-10-16 system10 驗證版（MTU 9000、分 4 批、門檻 = link rate 90%）
+        "configurable": ["duration", "test_type", "quick", "platform"],
         "defaults": {
             "duration":  30,
-            "test_type": "all",
+            "test_type": "all",    # "all" | "read" | "send" | "write"
+            "quick":     False,    # True = 只跑 64KB / 256KB（約 10 分鐘/測試類型）
+            "platform":  "",       # rdma_platforms.json 的平台名稱；"" = 檔案中的 default（GB300_L10）
         },
         "bg_capable":   False,
     },
@@ -302,21 +310,40 @@ TESTS = [
     },
 
     # ------------------------------------------------------------------
-    # 12  NVBandwidth Loopback
+    # 13  MUFU.EX2 Benchmark
     # ------------------------------------------------------------------
     {
-        "id":          12,
-        "key":         "nvbandwidth_loopback",
-        "name":        "NVBandwidth Loopback",
+        "id":          13,
+        "key":         "mufu_ex2",
+        "name":        "MUFU.EX2 Benchmark",
         "category":    "GPU Compute & Memory",
-        "script":      os.path.join(LIB_DIR, "nvbandwidth_loopback.py"),
+        "script":      os.path.join(LIB_DIR, "run_mufu_benchmark.py"),
         "prereqs": [
-            ("file", "nvbandwidth", "tools/nvbandwidth"),
+            ("cmd", "ipmitool", "ipmitool"),
         ],
         "configurable": ["iters"],
         "defaults": {
             "iters": 3,
         },
+        "bg_capable":   False,
+    },
+
+    # ------------------------------------------------------------------
+    # 14  HPL CPU Linpack
+    # ------------------------------------------------------------------
+    {
+        "id":          14,
+        "key":         "hpl_linpack",
+        "name":        "HPL CPU Linpack",
+        "category":    "CPU Compute",
+        "script":      os.path.join(LIB_DIR, "run_hpl_benchmark.py"),
+        "prereqs": [
+            ("cmd",  "singularity",         "singularity"),
+            ("cmd",  "ipmitool",            "ipmitool"),
+            ("file", "hpc-benchmarks*.sif", "tools/hpc-benchmarks*.sif"),
+        ],
+        "configurable": [],
+        "defaults": {},
         "bg_capable":   False,
     },
 ]

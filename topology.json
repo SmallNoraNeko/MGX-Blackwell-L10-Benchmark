@@ -1,0 +1,41 @@
+{
+    "_comment": [
+        "RDMA loopback pair topology configuration.",
+        "Each entry: [server_nic, client_nic]",
+        "",
+        "GB300 L10 MGX (system10) — physical cabling verified 2026-10-16 by RDMA traffic:",
+        "  BF3: mlx5_0<->mlx5_6, mlx5_1<->mlx5_7 (cross-card)",
+        "  CX8: mlx5_2<->mlx5_4, mlx5_3<->mlx5_5, mlx5_8<->mlx5_10, mlx5_9<->mlx5_11",
+        "",
+        "NOTE (v1.0.5): rdma_test_ipv4_v4.py / rdma_test_ipv6_v5.py use their own validated",
+        "  built-in topology (pairs + card type + GPU map + wave schedule) and do NOT read this file.",
+        "  The menu 'd' auto-discovery uses ping, which always succeeds between NICs on the",
+        "  same host, so it can produce wrong pairs (e.g. mlx5_0<->mlx5_1). Do not trust it on L10."
+    ],
+    "pairs": [
+        [
+            "mlx5_0",
+            "mlx5_6"
+        ],
+        [
+            "mlx5_1",
+            "mlx5_7"
+        ],
+        [
+            "mlx5_2",
+            "mlx5_4"
+        ],
+        [
+            "mlx5_3",
+            "mlx5_5"
+        ],
+        [
+            "mlx5_8",
+            "mlx5_10"
+        ],
+        [
+            "mlx5_9",
+            "mlx5_11"
+        ]
+    ]
+}

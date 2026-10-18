@@ -204,7 +204,8 @@ def _draw_menu(stdscr, rows: list[dict], cursor: int, scroll: int):
 
     # Hint line
     hint_y = sub_y + 1
-    hint = "  UP/DOWN: move   Space: toggle   a: select all   n: clear   Enter: confirm   q: quit"
+    hint = ("  UP/DOWN: move   Space: toggle   a: select all   n: clear   "
+            "d: discover RDMA topology   Enter: confirm   q: quit")
     if hint_y < h:
         try:
             stdscr.addstr(hint_y, 0, hint[:w], curses.color_pair(CP_DIM))
@@ -379,6 +380,27 @@ def _menu_curses(stdscr, rows: list[dict]) -> list[dict] | None:
             if _selectable(rows[cursor]):
                 rows[cursor]["selected"] = not rows[cursor]["selected"]
 
+        elif key in (ord("d"), ord("D")):
+            # Exit curses temporarily, run discover, then restart menu
+            curses.endwin()
+            print(f"\n{C}  ── Discover RDMA Topology ─────────────────────────────{RS}\n")
+            try:
+                from _rdma_common import discover_topology
+                discover_topology(ROOT_DIR)
+                print(f"\n{G}  topology.json updated. Press Enter to return to menu...{RS}", end="", flush=True)
+            except SystemExit:
+                print(f"\n{Y}  [WARN] Discovery did not complete. Press Enter to return to menu...{RS}", end="", flush=True)
+            except Exception as e:
+                print(f"\n{R}  [ERROR] {e}. Press Enter to return to menu...{RS}", end="", flush=True)
+            try:
+                input()
+            except (EOFError, KeyboardInterrupt):
+                pass
+            # Re-init curses
+            stdscr.refresh()
+            curses.curs_set(0)
+            _init_colors()
+
         elif key in (ord("a"), ord("A")):
             for r in rows:
                 if _selectable(r):
@@ -527,6 +549,15 @@ def configure_params(selected_tests: list[dict]) -> dict[int, dict]:
                  ("write", "ib_write_bw only")],
                 defaults["test_type"],
             )
+            p["quick"] = _prompt_yesno(
+                "Quick mode? (only 64KB / 256KB, ~10 min per test type; "
+                "No = full 2B~8MB sweep, ~50 min per test type)",
+                defaults.get("quick", False),
+            )
+            p["platform"] = _prompt(
+                "RDMA platform profile (rdma_platforms.json, e.g. GB300_L10 / TTM; Enter = file default)",
+                defaults.get("platform", ""), str,
+            )
 
         # -----------------------------------------------------------------
         elif tid == 8:   # 1G NIC iPerf
@@ -604,6 +635,14 @@ def configure_params(selected_tests: list[dict]) -> dict[int, dict]:
                 validate=lambda v: 1 <= v <= 50,
             )
 
+        # -----------------------------------------------------------------
+        elif tid == 13:   # MUFU.EX2 Benchmark
+            p["iters"] = _prompt(
+                "Number of benchmark runs (recommended: 3-10)",
+                defaults["iters"], int,
+                validate=lambda v: 1 <= v <= 50,
+            )
+
         user_params[tid] = p
 
     return user_params
@@ -619,6 +658,10 @@ def _fmt_params(test: dict, params: dict) -> str:
     elif tid in (6, 7):
         parts.append(f"duration={params.get('duration')}s")
         parts.append(f"type={params.get('test_type')}")
+        if params.get("quick"):
+            parts.append("quick")
+        if params.get("platform"):
+            parts.append(f"platform={params.get('platform')}")
     elif tid == 8:
         parts.append(f"client={params.get('client_ip')}")
         parts.append(params.get("mode", "bidirectional"))
@@ -636,6 +679,10 @@ def _fmt_params(test: dict, params: dict) -> str:
             parts.append("cmd=GB_training_scripts.txt")
     elif tid == 12:
         parts.append(f"iters={params.get('iters', 3)}")
+    elif tid == 13:
+        parts.append(f"iters={params.get('iters', 3)}")
+    elif tid == 14:
+        parts.append("sif=auto-search tools/hpc-benchmarks*.sif")
     return "  " + ", ".join(parts) if parts else ""
 
 
@@ -694,11 +741,37 @@ Examples:
     )
     parser.add_argument(
         "--select", default=None,
-        help="Comma-separated test IDs to run (e.g. 1,3,6) -- skips interactive menu",
+        metavar="IDs",
+        help=(
+            "Comma-separated test IDs to run without entering the menu  "
+            "(e.g. --select 1,5,6,12).  "
+            "Combine with --yes to skip all prompts."
+        ),
     )
     parser.add_argument(
         "--yes", action="store_true",
         help="Accept all default parameter values without prompting (use with --select)",
+    )
+    parser.add_argument(
+        "--params", default=None,
+        metavar="OVERRIDES",
+        help=(
+            "Override specific test parameters (use with --select --yes).  "
+            "Format: <test_id>.<param>=<value>, comma-separated.  "
+            "Examples:  "
+            "5.iters=5  "
+            "6.duration=60  "
+            "6.serial=true  "
+            "5.msg_range=full,6.duration=60,10.interval=0.1  "
+            "Boolean: true/false/1/0/yes/no"
+        ),
+    )
+    parser.add_argument(
+        "--list", action="store_true",
+        help=(
+            "List all test IDs, names, and configurable parameters, then exit.  "
+            "Use this to see what --select IDs and --params keys are available."
+        ),
     )
     parser.add_argument(
         "--log-dir", default=None,
@@ -708,7 +781,103 @@ Examples:
 
 
 # ===========================================================================
-# SECTION 5 — Main
+# SECTION 5 — CLI helpers
+# ===========================================================================
+
+def _list_tests(availability: dict) -> None:
+    """Print all test IDs, names, availability and configurable params."""
+    print(f"\n{G}  GB300 Benchmark Launcher — Available Tests{RS}\n")
+    print(f"  {'ID':<4}  {'Name':<26}  {'Status':<12}  Configurable Parameters")
+    print(f"  {'──':<4}  {'──────────────────────────':<26}  {'──────────':<12}  ──────────────────────────────")
+    for test in TESTS:
+        tid     = test["id"]
+        name    = test["name"]
+        fails   = availability.get(tid, [])
+        status  = f"{G}available{RS}" if not fails else f"{R}unavailable{RS}"
+        params  = ", ".join(
+            f"{k}={v!r}" for k, v in test.get("defaults", {}).items()
+        ) or "—"
+        print(f"  {tid:<4}  {name:<26}  {status:<22}  {params}")
+
+    print(f"\n  {DIM}Usage examples:{RS}")
+    print(f"  {DIM}  sudo python3 gb300_launcher.py --select 1,2,3{RS}")
+    print(f"  {DIM}  sudo python3 gb300_launcher.py --select 5,6 --yes{RS}")
+    print(f"  {DIM}  sudo python3 gb300_launcher.py --select 5,6,10 --yes "
+          f"--params 5.iters=5,6.duration=60,10.interval=0.1{RS}")
+    print(f"  {DIM}  sudo python3 gb300_launcher.py --select 6 --yes "
+          f"--params 6.serial=true,6.duration=120{RS}\n")
+
+
+def _parse_params_override(raw: str, selected: list) -> dict:
+    """
+    Parse --params string into a nested dict of overrides.
+
+    Input format:  "5.iters=5,6.duration=60,6.serial=true"
+    Returns:       {5: {"iters": 5}, 6: {"duration": 60, "serial": True}}
+
+    Values are auto-typed:
+      - "true"/"false"/"yes"/"no"/"1"/"0"  → bool
+      - digit string                         → int
+      - digit.digit string                   → float
+      - everything else                      → str
+    """
+    if not raw:
+        return {}
+
+    def _coerce(v: str):
+        if v.lower() in ("true", "yes", "1"):   return True
+        if v.lower() in ("false", "no", "0"):   return False
+        try:   return int(v)
+        except ValueError: pass
+        try:   return float(v)
+        except ValueError: pass
+        return v
+
+    # Build id → name map for error messages
+    id_map = {t["id"]: t for t in selected}
+    overrides: dict[int, dict] = {}
+
+    for token in raw.split(","):
+        token = token.strip()
+        if not token:
+            continue
+        if "=" not in token or "." not in token.split("=")[0]:
+            print(f"{Y}  [WARN] --params: skipping malformed token '{token}' "
+                  f"(expected <id>.<key>=<value>){RS}")
+            continue
+
+        id_key, value = token.split("=", 1)
+        tid_str, param = id_key.split(".", 1)
+
+        try:
+            tid = int(tid_str)
+        except ValueError:
+            print(f"{Y}  [WARN] --params: '{tid_str}' is not a valid test ID, "
+                  f"skipping '{token}'{RS}")
+            continue
+
+        if tid not in id_map:
+            print(f"{Y}  [WARN] --params: test ID {tid} not in --select list, "
+                  f"skipping '{token}'{RS}")
+            continue
+
+        test    = id_map[tid]
+        defaults = test.get("defaults", {})
+        if param not in defaults:
+            print(f"{Y}  [WARN] --params: '{param}' is not a known parameter for "
+                  f"test {tid} ({test['name']}).  "
+                  f"Known params: {list(defaults.keys())}{RS}")
+            continue
+
+        overrides.setdefault(tid, {})[param] = _coerce(value)
+        print(f"  {DIM}  [param] test {tid} ({test['name']}): "
+              f"{param} = {_coerce(value)!r}{RS}")
+
+    return overrides
+
+
+# ===========================================================================
+# SECTION 6 — Main
 # ===========================================================================
 
 def main():
@@ -726,6 +895,11 @@ def main():
     report_base = args.log_dir or os.path.join(ROOT_DIR, "report")
     os.makedirs(report_base, exist_ok=True)
 
+    # ── --list: print test catalogue and exit ───────────────────────────────
+    if args.list:
+        _list_tests(availability)
+        sys.exit(0)
+
     # -----------------------------------------------------------------------
     # Test selection
     # -----------------------------------------------------------------------
@@ -741,7 +915,8 @@ def main():
         for tid in sel_ids:
             test = next((t for t in TESTS if t["id"] == tid), None)
             if test is None:
-                print(f"{R}  [ERROR] Unknown test ID: {tid}{RS}")
+                print(f"{R}  [ERROR] Unknown test ID: {tid}.  "
+                      f"Run --list to see available IDs.{RS}")
                 sys.exit(1)
             failures = availability.get(tid, [])
             if failures:
@@ -764,8 +939,13 @@ def main():
     # Parameter configuration
     # -----------------------------------------------------------------------
     if args.yes:
-        # Use all defaults without prompting
+        # Start with defaults, then apply --params overrides
         user_params = {t["id"]: t["defaults"].copy() for t in selected}
+        if args.params:
+            print(f"\n{DIM}  Applying --params overrides...{RS}")
+            overrides = _parse_params_override(args.params, selected)
+            for tid, kvs in overrides.items():
+                user_params.setdefault(tid, {}).update(kvs)
     else:
         user_params = configure_params(selected)
 

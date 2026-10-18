@@ -1,0 +1,116 @@
+{
+    "_comment": [
+        "RDMA loopback platform profiles for rdma_test_ipv4_v4.py / rdma_test_ipv6_v5.py.",
+        "Select with --platform <name> (launcher: --params '6.platform=TTM'); 'default' is used otherwise.",
+        "Per platform: 'pairs' is required ([server, client], named pair1..N in order).",
+        "Optional (auto-detected when omitted — verify, then pin here):",
+        "  cards     : {nic: BF3|CX8|CX7|CX6}        → sysfs device id / board_id / mst status",
+        "  link_gbps : {card: Gb/s}                  → /sys/class/infiniband/<nic>/ports/1/rate",
+        "  gpu_map   : {nic: 'DDDD:BB:DD.F'}         → same-NUMA GPU; server/client on different GPUs",
+        "  waves     : [[pairN, ...], ...]           → ports of the same physical card never share a wave",
+        "  line_rate_pct : threshold = link_gbps x pct (default 0.90)",
+        "  card_behavior : {card: {rdma_cm: bool, data_direct: bool}} to override built-in behaviour",
+        "Cross-card interference (e.g. L10: BF3 + NUMA1 CX8) cannot be auto-detected; measure, then set 'waves'."
+    ],
+    "default": "GB300_L10",
+    "platforms": {
+        "GB300_L10": {
+            "description": "GB300 L10 MGX (system10), validated 2026-10-16",
+            "pairs": [
+                [
+                    "mlx5_0",
+                    "mlx5_6"
+                ],
+                [
+                    "mlx5_1",
+                    "mlx5_7"
+                ],
+                [
+                    "mlx5_2",
+                    "mlx5_4"
+                ],
+                [
+                    "mlx5_3",
+                    "mlx5_5"
+                ],
+                [
+                    "mlx5_8",
+                    "mlx5_10"
+                ],
+                [
+                    "mlx5_9",
+                    "mlx5_11"
+                ]
+            ],
+            "cards": {
+                "mlx5_0": "BF3",
+                "mlx5_1": "BF3",
+                "mlx5_6": "BF3",
+                "mlx5_7": "BF3",
+                "mlx5_2": "CX8",
+                "mlx5_3": "CX8",
+                "mlx5_4": "CX8",
+                "mlx5_5": "CX8",
+                "mlx5_8": "CX8",
+                "mlx5_9": "CX8",
+                "mlx5_10": "CX8",
+                "mlx5_11": "CX8"
+            },
+            "link_gbps": {
+                "BF3": 400,
+                "CX8": 800
+            },
+            "gpu_map": {
+                "mlx5_0": "0008:06:00.0",
+                "mlx5_1": "0008:06:00.0",
+                "mlx5_6": "0018:06:00.0",
+                "mlx5_7": "0018:06:00.0",
+                "mlx5_2": "0008:06:00.0",
+                "mlx5_3": "0008:06:00.0",
+                "mlx5_4": "0009:06:00.0",
+                "mlx5_5": "0009:06:00.0",
+                "mlx5_8": "0018:06:00.0",
+                "mlx5_9": "0018:06:00.0",
+                "mlx5_10": "0019:06:00.0",
+                "mlx5_11": "0019:06:00.0"
+            },
+            "waves": [
+                [
+                    "pair1",
+                    "pair3"
+                ],
+                [
+                    "pair2",
+                    "pair4"
+                ],
+                [
+                    "pair5"
+                ],
+                [
+                    "pair6"
+                ]
+            ]
+        },
+        "TTM": {
+            "description": "TTM — pairs from v1.0.4 README; cards / link / GPU / waves auto-detected (not yet validated)",
+            "pairs": [
+                [
+                    "mlx5_0",
+                    "mlx5_2"
+                ],
+                [
+                    "mlx5_1",
+                    "mlx5_3"
+                ],
+                [
+                    "mlx5_6",
+                    "mlx5_8"
+                ],
+                [
+                    "mlx5_7",
+                    "mlx5_9"
+                ]
+            ]
+        }
+    }
+}
